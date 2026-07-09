@@ -18,6 +18,7 @@ function Navbar() {
         <Link to="/sitters" style={styles.link}>Pet Sitters</Link>
         <Link to="/tips" style={styles.link}>Care Tips</Link>
         <Link to="/helplines" style={styles.link}>Helplines</Link>
+        <Link to="/nearby" style={styles.link}>Nearby</Link>
         {token ? (
           <>
             <Link to="/add-pet" style={styles.link}>+ Add Pet</Link>

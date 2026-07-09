@@ -8,6 +8,7 @@ import Helplines from "./pages/Helplines";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddPet from "./pages/AddPet";
+import Nearby from "./pages/Nearby";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/add-pet" element={<AddPet />} />
+        <Route path="/nearby" element={<Nearby />} />
       </Routes>
     </div>
   );
