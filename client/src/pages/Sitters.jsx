@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api";
+import { Link } from "react-router-dom";
 
 function Sitters() {
   const [sitters, setSitters] = useState([]);
@@ -16,6 +17,7 @@ function Sitters() {
     <div style={styles.container}>
       <h2 style={styles.title}>🐕 Pet Sitters</h2>
       <p style={styles.sub}>Trusted community members who will look after your pet</p>
+      <Link to="/become-sitter" style={styles.addBtn}>+ Become a sitter</Link>
 
       {loading ? (
         <p style={styles.msg}>Loading...</p>
@@ -70,6 +72,7 @@ const styles = {
   btn: { display: "block", background: "#3CAB7E", color: "white", padding: "10px", borderRadius: "8px", textDecoration: "none", fontWeight: "600", fontSize: "14px" },
   msg: { textAlign: "center", color: "#6b7280", fontSize: "16px", marginTop: "60px" },
   empty: { textAlign: "center", marginTop: "60px" },
+  addBtn: { display: "inline-block", background: "#3CAB7E", color: "white", padding: "10px 20px", borderRadius: "8px", textDecoration: "none", fontWeight: "600", fontSize: "14px", marginBottom: "24px" },
 };
 
 export default Sitters;

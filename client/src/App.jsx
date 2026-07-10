@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddPet from "./pages/AddPet";
 import Nearby from "./pages/Nearby";
+import BecomeSitter from "./pages/BecomeSitter";
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/nearby" element={<Nearby />} />
+        <Route path="/become-sitter" element={<BecomeSitter />} />
+        
       </Routes>
     </div>
   );
