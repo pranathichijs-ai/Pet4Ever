@@ -2,6 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
 
+const CLOUD_NAME = "qifjwya0";
+const UPLOAD_PRESET = "b9sl8vea";
+
+async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  return data.secure_url;
+}
+
 function AddPet() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -9,6 +24,8 @@ function AddPet() {
     description: "", listingType: "adopt", location: "",
     vaccinated: false, neutered: false, healthNotes: "",
   });
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,11 +34,21 @@ function AddPet() {
     setForm({ ...form, [e.target.name]: val });
   };
 
+  const handleImages = (e) => {
+    const files = Array.from(e.target.files).slice(0, 3);
+    setImages(files);
+    setPreviews(files.map((f) => URL.createObjectURL(f)));
+  };
+
   const submit = async () => {
     if (!localStorage.getItem("token")) return navigate("/login");
     setLoading(true);
     try {
-      await API.post("/pets", { ...form, age: Number(form.age) });
+      let imageUrls = [];
+      if (images.length > 0) {
+        imageUrls = await Promise.all(images.map(uploadImage));
+      }
+      await API.post("/pets", { ...form, age: Number(form.age), images: imageUrls });
       navigate("/pets?type=" + form.listingType);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -88,6 +115,18 @@ function AddPet() {
         <textarea name="healthNotes" value={form.healthNotes} onChange={handle} style={{ ...styles.textarea, height: "80px" }} placeholder="Any medical history, allergies, etc." />
       </div>
 
+      <div style={styles.field}>
+        <label style={styles.label}>Photos (up to 3)</label>
+        <input type="file" accept="image/*" multiple onChange={handleImages} style={styles.fileInput} />
+        {previews.length > 0 && (
+          <div style={styles.previews}>
+            {previews.map((p, i) => (
+              <img key={i} src={p} alt="preview" style={styles.preview} />
+            ))}
+          </div>
+        )}
+      </div>
+
       <div style={styles.checkRow}>
         <label style={styles.checkLabel}>
           <input type="checkbox" name="vaccinated" checked={form.vaccinated} onChange={handle} />
@@ -100,7 +139,7 @@ function AddPet() {
       </div>
 
       <button onClick={submit} disabled={loading} style={styles.btn}>
-        {loading ? "Submitting..." : "Post listing"}
+        {loading ? "Uploading & posting..." : "Post listing"}
       </button>
     </div>
   );
@@ -115,6 +154,9 @@ const styles = {
   label: { fontSize: "13px", fontWeight: "600", color: "#374151" },
   input: { padding: "10px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", outline: "none" },
   textarea: { padding: "10px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", height: "120px", resize: "vertical", outline: "none" },
+  fileInput: { padding: "8px 0", fontSize: "14px" },
+  previews: { display: "flex", gap: "12px", marginTop: "12px", flexWrap: "wrap" },
+  preview: { width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid #e5e7eb" },
   checkRow: { display: "flex", gap: "24px", marginBottom: "24px" },
   checkLabel: { display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", cursor: "pointer" },
   btn: { background: "#3CAB7E", color: "white", border: "none", padding: "14px 32px", borderRadius: "10px", fontSize: "16px", fontWeight: "600", cursor: "pointer", width: "100%" },

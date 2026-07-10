@@ -92,7 +92,12 @@ function Pets() {
         <div style={styles.grid}>
           {pets.map((pet) => (
             <div key={pet._id} style={styles.card}>
-              <div style={styles.imgBox}>{pet.species === "dog" ? "🐶" : pet.species === "cat" ? "🐱" : pet.species === "rabbit" ? "🐰" : pet.species === "bird" ? "🐦" : "🐾"}</div>
+              <div style={styles.imgBox}>
+                {pet.images && pet.images.length > 0
+                  ? <img src={pet.images[0]} alt={pet.name} style={styles.petImg} />
+                  : (pet.species === "dog" ? "🐶" : pet.species === "cat" ? "🐱" : pet.species === "rabbit" ? "🐰" : pet.species === "bird" ? "🐦" : "🐾")
+                }
+              </div>
               <div style={styles.info}>
                 <h3 style={styles.name}>{pet.name}</h3>
                 <p style={styles.breed}>{pet.breed || pet.species} · {pet.age ? `${pet.age} months` : "Age unknown"}</p>
@@ -136,6 +141,7 @@ const styles = {
   owner: { color: "#9ca3af", fontSize: "12px", margin: "0 0 10px" },
   contactBtn: { background: "#3CAB7E", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600", width: "100%" },
   msg: { textAlign: "center", color: "#6b7280", marginTop: "60px", fontSize: "16px" },
+  petImg: { width: "100%", height: "100%", objectFit: "cover" },
 };
 
 const modal = {
