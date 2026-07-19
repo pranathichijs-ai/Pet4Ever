@@ -1,17 +1,4 @@
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-// Fix default marker icons in Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-const SINGAPORE_CENTER = [1.3521, 103.8198];
+import { useState } from "react";
 
 const places = {
   vets: [
@@ -36,39 +23,22 @@ const places = {
   ],
 };
 
-const categoryIcons = {
-  vets: "🏥",
-  petShops: "🛒",
-  adoption: "🐾",
-};
-
-const categoryColors = {
-  vets: "#E6F1FB",
-  petShops: "#E8F7F0",
-  adoption: "#FBEAF0",
-};
-
-function createCustomIcon(emoji) {
-  return L.divIcon({
-    className: "",
-    html: `<div style="font-size:24px;filter:drop-shadow(1px 1px 2px rgba(0,0,0,0.3))">${emoji}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-}
+const categoryIcons = { vets: "🏥", petShops: "🛒", adoption: "🐾" };
+const categoryColors = { vets: "#E6F1FB", petShops: "#E8F7F0", adoption: "#FBEAF0" };
 
 function Nearby() {
   const [activeCategory, setActiveCategory] = useState("vets");
-  const [userLocation, setUserLocation] = useState(null);
-
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserLocation(SINGAPORE_CENTER)
-    );
-  }, []);
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
   const currentPlaces = places[activeCategory];
+  const center = selectedPlace
+    ? `${selectedPlace.lat},${selectedPlace.lng}`
+    : "1.3521,103.8198";
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${
+    Number(center.split(",")[1]) - 0.05
+  }%2C${Number(center.split(",")[0]) - 0.05}%2C${
+    Number(center.split(",")[1]) + 0.05
+  }%2C${Number(center.split(",")[0]) + 0.05}&layer=mapnik&marker=${center}`;
 
   return (
     <div style={styles.container}>
@@ -79,7 +49,7 @@ function Nearby() {
         {Object.keys(places).map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => { setActiveCategory(cat); setSelectedPlace(null); }}
             style={{ ...styles.tab, ...(activeCategory === cat ? styles.activeTab : {}) }}
           >
             {categoryIcons[cat]} {cat === "vets" ? "Vets" : cat === "petShops" ? "Pet Shops" : "Adoption"}
@@ -89,45 +59,41 @@ function Nearby() {
 
       <div style={styles.layout}>
         <div style={styles.mapWrapper}>
-          <MapContainer
-            key={activeCategory}
-            center={userLocation || SINGAPORE_CENTER}
-            zoom={12}
-            style={{ height: "100%", width: "100%", borderRadius: "16px" }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {currentPlaces.map((place) => (
-              <Marker
-                key={place.name}
-                position={[place.lat, place.lng]}
-                icon={createCustomIcon(categoryIcons[activeCategory])}
-              >
-                <Popup>
-                  <strong>{place.name}</strong><br />
-                  📍 {place.address}<br />
-                  📞 {place.phone}
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <iframe
+            title="map"
+            src={mapSrc}
+            style={{ width: "100%", height: "100%", border: "none", borderRadius: "16px" }}
+          />
         </div>
 
         <div style={styles.list}>
           {currentPlaces.map((place) => (
-            <div key={place.name} style={{ ...styles.card, background: categoryColors[activeCategory] }}>
+            <div
+              key={place.name}
+              onClick={() => setSelectedPlace(place)}
+              style={{
+                ...styles.card,
+                background: categoryColors[activeCategory],
+                border: selectedPlace?.name === place.name ? "2px solid #3CAB7E" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
               <div style={styles.cardIcon}>{categoryIcons[activeCategory]}</div>
               <div>
                 <h4 style={styles.cardName}>{place.name}</h4>
                 <p style={styles.cardAddr}>📍 {place.address}</p>
-                <a href={`tel:${place.phone}`} style={styles.cardPhone}>📞 {place.phone}</a>
+                <a href={`tel:${place.phone}`} style={styles.cardPhone} onClick={e => e.stopPropagation()}>
+                  📞 {place.phone}
+                </a>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {selectedPlace && (
+        <p style={styles.hint}>Showing location of <strong>{selectedPlace.name}</strong> — <span style={{ color: "#3CAB7E", cursor: "pointer" }} onClick={() => setSelectedPlace(null)}>show all</span></p>
+      )}
     </div>
   );
 }
@@ -147,6 +113,7 @@ const styles = {
   cardName: { margin: "0 0 4px", fontSize: "14px", fontWeight: "600" },
   cardAddr: { margin: "0 0 4px", fontSize: "12px", color: "#6b7280" },
   cardPhone: { fontSize: "12px", color: "#3CAB7E", fontWeight: "600", textDecoration: "none" },
+  hint: { marginTop: "12px", fontSize: "13px", color: "#6b7280" },
 };
 
 export default Nearby;
