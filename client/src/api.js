@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://pet4ever.onrender.com/api",
+  baseURL: "https://pet4ever-production.up.railway.app/api",
 });
 
 // Attach JWT token to every request if logged in
